@@ -2,7 +2,9 @@ module.exports = {
     "parser": "babel-eslint",
     "env": {
         "browser": true,
-        "es6": true
+        "commonjs": true,
+        "es6": true,
+        "jquery": true
     },
     "extends": "eslint:recommended",
     "globals": {
