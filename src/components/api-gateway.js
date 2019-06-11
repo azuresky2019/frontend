@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import {API} from "./api";
+import {API} from './api';
 
 export class APIGateway extends API {
     constructor(...rest) {
@@ -114,6 +114,22 @@ export class APIGateway extends API {
             action_type: type,
             action_number: number
         }, true, options);
+    }
+
+    // Rooms
+    async getRooms(options) {
+        options = options || {};
+        options.cache = {key: 'get_room_configurations'};
+        let room = await this._execute('get_room_configurations', undefined, {}, true, options);
+        return {
+            data: room.config.filter((room) => room.floor !== 255).map((room) => {
+                return {
+                    id: room.id,
+                    floor_id: room.floor,
+                    name: room.name
+                }
+            })
+        }
     }
 
     // Outputs

@@ -14,27 +14,29 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import {inject, Factory, computedFrom} from "aurelia-framework";
-import {DialogService} from "aurelia-dialog";
-import {Base} from "../../resources/base";
-import {Refresher} from "../../components/refresher";
-import {Toolbox} from "../../components/toolbox";
-import {Logger} from "../../components/logger";
-import {Output} from "../../containers/output";
-import {Shutter} from "../../containers/shutter";
-import {Input} from "../../containers/input";
-import {ConfigureOutputWizard} from "../../wizards/configureoutput/index";
-import {ConfigureShutterWizard} from "../../wizards/configureshutter/index";
-import {EventsWebSocketClient} from "../../components/websocket-events";
+import {inject, Factory, computedFrom} from 'aurelia-framework';
+import {DialogService} from 'aurelia-dialog';
+import {Base} from '../../resources/base';
+import {Refresher} from '../../components/refresher';
+import {Toolbox} from '../../components/toolbox';
+import {Logger} from '../../components/logger';
+import {Output} from '../../containers/output';
+import {Shutter} from '../../containers/shutter';
+import {Input} from '../../containers/input';
+import {Room} from '../../containers/room';
+import {ConfigureOutputWizard} from '../../wizards/configureoutput/index';
+import {ConfigureShutterWizard} from '../../wizards/configureshutter/index';
+import {EventsWebSocketClient} from '../../components/websocket-events';
 
-@inject(DialogService, Factory.of(Input), Factory.of(Output), Factory.of(Shutter))
+@inject(DialogService, Factory.of(Input), Factory.of(Output), Factory.of(Shutter), Factory.of(Room))
 export class Inputs extends Base {
-    constructor(dialogService, inputFactory, outputFactory, shutterFactory, ...rest) {
+    constructor(dialogService, inputFactory, outputFactory, shutterFactory, roomFactory,...rest) {
         super(...rest);
         this.dialogService = dialogService;
         this.inputFactory = inputFactory;
         this.outputFactory = outputFactory;
         this.shutterFactory = shutterFactory;
+        this.roomFactory = roomFactory;
         this.webSocket = new EventsWebSocketClient(['OUTPUT_CHANGE', 'SHUTTER_CHANGE']);
         this.webSocket.onMessage = async (message) => {
             return this.processEvent(message);
@@ -67,6 +69,7 @@ export class Inputs extends Base {
                 });
             }
             this.loadInputs().catch(() => {});
+            this.loadRooms().catch(() => {});
         }, 5000);
         this.Output = Output;
         this.Shutter = Shutter;
@@ -84,6 +87,9 @@ export class Inputs extends Base {
         this.inputs = [];
         this.inputsMap = {};
         this.inputsLoading = true;
+        this.rooms = [];
+        this.roomsMap = {};
+        this.roomsLoading = true;
         this.filters = ['light', 'dimmer', 'relay', 'virtual', 'shutter', 'unconfigured'];
         this.filter = ['light', 'dimmer', 'relay', 'virtual', 'shutter'];
         this.installationHasUpdated = false;
@@ -151,6 +157,19 @@ export class Inputs extends Base {
         }
     }
 
+    async loadRooms() {
+        try {
+            let rooms = await this.api.getRooms();
+            Toolbox.crossfiller(rooms.data, this.rooms, 'id', (id) => {
+                let room = this.roomFactory(id);
+                this.roomsMap[id] = room;
+                return room;
+            });
+            this.roomsLoading = false;
+        } catch (error) {
+            Logger.error(`Could not load Rooms: ${error.message}`);
+        }
+    }
 
     async loadOutputsConfiguration() {
         try {

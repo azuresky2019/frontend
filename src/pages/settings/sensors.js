@@ -14,25 +14,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import {inject, Factory, computedFrom} from "aurelia-framework";
-import {DialogService} from "aurelia-dialog";
-import {Base} from "../../resources/base";
-import {Refresher} from "../../components/refresher";
-import {Toolbox} from "../../components/toolbox";
-import {Logger} from "../../components/logger";
-import {Sensor} from "../../containers/sensor";
-import {ConfigureSensorWizard} from "../../wizards/configuresensor/index";
+import {inject, Factory, computedFrom} from 'aurelia-framework';
+import {DialogService} from 'aurelia-dialog';
+import {Base} from '../../resources/base';
+import {Refresher} from '../../components/refresher';
+import {Toolbox} from '../../components/toolbox';
+import {Logger} from '../../components/logger';
+import {Sensor} from '../../containers/sensor';
+import {Room} from '../../containers/room';
+import {ConfigureSensorWizard} from '../../wizards/configuresensor/index';
 
-@inject(DialogService, Factory.of(Sensor))
+@inject(DialogService, Factory.of(Sensor), Factory.of(Room))
 export class Sensors extends Base {
-    constructor(dialogService, sensorFactory, ...rest) {
+    constructor(dialogService, sensorFactory, roomFactory, ...rest) {
         super(...rest);
         this.dialogService = dialogService;
         this.sensorFactory = sensorFactory;
+        this.roomFactory = roomFactory;
         this.refresher = new Refresher(async () => {
             if (this.installationHasUpdated) {
                 this.initVariables();
             }
+            this.loadRooms().catch(() => {});
             await this.loadSensors();
             this.signaler.signal('reload-sensors');
         }, 5000);
@@ -43,6 +46,9 @@ export class Sensors extends Base {
         this.sensors = [];
         this.sensorsLoading = true;
         this.activeSensor = undefined;
+        this.rooms = [];
+        this.roomsMap = {};
+        this.roomsLoading = true;
         this.filters = ['temperature', 'humidity', 'brightness', 'none'];
         this.filter = ['temperature', 'humidity', 'brightness'];
         this.installationHasUpdated = false;
@@ -68,6 +74,20 @@ export class Sensors extends Base {
             this.sensorsLoading = false;
         } catch (error) {
             Logger.error(`Could not load Sensor configurations and statusses: ${error.message}`);
+        }
+    }
+
+    async loadRooms() {
+        try {
+            let rooms = await this.api.getRooms();
+            Toolbox.crossfiller(rooms.data, this.rooms, 'id', (id) => {
+                let room = this.roomFactory(id);
+                this.roomsMap[id] = room;
+                return room;
+            });
+            this.roomsLoading = false;
+        } catch (error) {
+            Logger.error(`Could not load Rooms: ${error.message}`);
         }
     }
 

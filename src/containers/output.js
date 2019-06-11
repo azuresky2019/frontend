@@ -14,10 +14,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import {computedFrom} from "aurelia-framework";
-import {Led} from "../containers/led";
-import {BaseObject} from "./baseobject";
-import {Logger} from "../components/logger";
+import {computedFrom} from 'aurelia-framework';
+import {Led} from '../containers/led';
+import {BaseObject} from './baseobject';
+import {Logger} from '../components/logger';
+import Shared from '../components/shared';
 
 export class Output extends BaseObject {
     constructor(...rest /*, id */) {
@@ -45,7 +46,9 @@ export class Output extends BaseObject {
             moduleType: 'module_type',
             name: 'name',
             type: 'type',
-            timer: 'timer',
+            timer: [['timer'], timer => {
+                return timer === 65535 && Shared.features.contains('default_timer_disabled') ? 0 : timer;
+            }],
             dimmer: 'dimmer',
             status: 'status',
             room: 'room',

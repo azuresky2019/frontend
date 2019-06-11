@@ -14,14 +14,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import {inject, useView, Factory, computedFrom} from "aurelia-framework";
+import {inject, useView, Factory, computedFrom} from 'aurelia-framework';
 import {PLATFORM} from 'aurelia-pal';
-import {DialogController} from "aurelia-dialog";
-import {BaseWizard} from "../basewizard";
-import {Data} from "./data";
-import {General} from "./general";
-import {Configure} from "./configure";
-import {Feedback} from "./feedback";
+import {DialogController} from 'aurelia-dialog';
+import {BaseWizard} from '../basewizard';
+import {Data} from './data';
+import {General} from './general';
+import {Configure} from './configure';
+import {Feedback} from './feedback';
 
 @useView(PLATFORM.moduleName('wizards/basewizard.html'))
 @inject(DialogController, Factory.of(General), Factory.of(Configure), Factory.of(Feedback))
@@ -53,6 +53,7 @@ export class ConfigureInputWizard extends BaseWizard {
         let input = this.data.input;
         input.basicActions = [];
         input.pulseCounter = undefined;
+        input.room = this.data.room === undefined ? 255 : this.data.room.id;
         switch (this.data.mode) {
             case 'linked':
                 input.action = this.data.linkedOutput.id;

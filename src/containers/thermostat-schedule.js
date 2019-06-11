@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import {Container, computedFrom} from 'aurelia-framework';
-import {I18N} from "aurelia-i18n";
-import {Toolbox} from "../components/toolbox";
+import {I18N} from 'aurelia-i18n';
+import {Toolbox} from '../components/toolbox';
 
 export class ThermostatSchedule {
     constructor(schedule, timeBased) {
@@ -57,7 +57,6 @@ export class ThermostatSchedule {
         if (this.day2Temperature === null) {
             this.day2Temperature = 20;
         }
-        this.nightTemperature = Math.min(this.nightTemperature, this.day1Temperature, this.day2Temperature);
         // Make sure the times are at least sorted correctly
         let times = [this.day1Start, this.day1End, this.day2Start, this.day2End];
         times.sort((a, b) => {
